@@ -106,12 +106,10 @@ int SignalDirection()
   {
    if(iBars(g_symbol,InpSignalTimeframe)<InpSlowEMA+5) return(0);
    double fastOne=iMA(g_symbol,InpSignalTimeframe,InpFastEMA,0,MODE_EMA,PRICE_CLOSE,1);
-   double fastTwo=iMA(g_symbol,InpSignalTimeframe,InpFastEMA,0,MODE_EMA,PRICE_CLOSE,2);
    double slowOne=iMA(g_symbol,InpSignalTimeframe,InpSlowEMA,0,MODE_EMA,PRICE_CLOSE,1);
-   double slowTwo=iMA(g_symbol,InpSignalTimeframe,InpSlowEMA,0,MODE_EMA,PRICE_CLOSE,2);
    double rsi=iRSI(g_symbol,InpSignalTimeframe,InpRSIPeriod,PRICE_CLOSE,1);
-   if(fastOne>slowOne && fastTwo<=slowTwo && rsi>=InpRSIBuyMinimum) return(1);
-   if(fastOne<slowOne && fastTwo>=slowTwo && rsi<=InpRSISellMaximum) return(-1);
+   if(fastOne>slowOne && rsi>=InpRSIBuyMinimum) return(1);
+   if(fastOne<slowOne && rsi<=InpRSISellMaximum) return(-1);
    return(0);
   }
 bool CanOpen(const double spread)

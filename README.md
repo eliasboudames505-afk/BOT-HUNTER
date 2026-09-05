@@ -6,7 +6,7 @@ This repository contains equivalent MetaTrader 4 and MetaTrader 5 Expert Advisor
 - `MQL5/BrokerAwareXAUUSDEA.mq5`
 - `MQL5/BrokerAwareBTCUSDEA.mq5`
 
-The XAUUSD and BTCUSD advisors trade a conservative trend-continuation setup: a fast/slow EMA cross confirmed by RSI, evaluated only once per completed signal bar. They deliberately do not use hard-coded broker symbol names. Set `InpSymbol` to the exact Market Watch name (for example, `XAUUSDm`, `GOLD`, or `BTCUSD.a`) when the chart symbol is not right.
+The XAUUSD and BTCUSD advisors trade a trend-continuation setup: the fast EMA must be above/below the slow EMA and RSI must confirm the direction. The setup is evaluated on completed signal bars and can open immediately after attachment when the current confirmed trend meets all risk gates. They deliberately do not use hard-coded broker symbol names. Set `InpSymbol` to the exact Market Watch name (for example, `XAUUSDm`, `GOLD`, or `BTCUSD.a`) when the chart symbol is not right.
 
 ## Safeguards
 

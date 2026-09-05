@@ -113,11 +113,10 @@ bool IsNewSignalBar()
 int SignalDirection()
   {
    if(Bars(g_symbol,InpSignalTimeframe)<InpSlowEMA+5) return(0);
-   double fast[2],slow[2],rsi[1];
-   if(CopyBuffer(g_fastHandle,0,1,2,fast)!=2 || CopyBuffer(g_slowHandle,0,1,2,slow)!=2 || CopyBuffer(g_rsiHandle,0,1,1,rsi)!=1) return(0);
-   // CopyBuffer places the older requested bar at index zero in fixed arrays.
-   if(fast[1]>slow[1] && fast[0]<=slow[0] && rsi[0]>=InpRSIBuyMinimum) return(1);
-   if(fast[1]<slow[1] && fast[0]>=slow[0] && rsi[0]<=InpRSISellMaximum) return(-1);
+   double fast[1],slow[1],rsi[1];
+   if(CopyBuffer(g_fastHandle,0,1,1,fast)!=1 || CopyBuffer(g_slowHandle,0,1,1,slow)!=1 || CopyBuffer(g_rsiHandle,0,1,1,rsi)!=1) return(0);
+   if(fast[0]>slow[0] && rsi[0]>=InpRSIBuyMinimum) return(1);
+   if(fast[0]<slow[0] && rsi[0]<=InpRSISellMaximum) return(-1);
    return(0);
   }
 bool CanOpen(const double spread)
