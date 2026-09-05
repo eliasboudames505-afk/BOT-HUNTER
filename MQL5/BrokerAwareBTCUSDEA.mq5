@@ -57,7 +57,7 @@ bool DailyLossLimitReached()
    return(InpMaxDailyLossPercent>0.0 && g_dayStartEquity>0.0 &&
           AccountInfoDouble(ACCOUNT_EQUITY)<=g_dayStartEquity*(1.0-InpMaxDailyLossPercent/100.0));
   }
-double MaxSpreadPrice() { return(InpMaxSpreadPrice>0.0 ? InpMaxSpreadPrice : 80.0); }
+double MaxSpreadPrice() { return(InpMaxSpreadPrice>0.0 ? InpMaxSpreadPrice : 4.0); }
 double StopLossPrice() { return(InpStopLossPrice>0.0 ? InpStopLossPrice : 500.0); }
 double TakeProfitPrice() { return(InpTakeProfitPrice>0.0 ? InpTakeProfitPrice : 1000.0); }
 double TrailStartPrice() { return(InpTrailStartPrice>0.0 ? InpTrailStartPrice : 400.0); }
@@ -239,7 +239,7 @@ void OnTick()
    RefreshDayGuard();
    ManageTrailingStop();
    MqlTick tick;
-   if(SymbolInfoTick(g_symbol,tick) && IsNewSignalBar() && CanOpen(tick.ask-tick.bid))
+   if(SymbolInfoTick(g_symbol,tick) && CanOpen(tick.ask-tick.bid))
      {
       int direction=SignalDirection();
       if(direction!=0) OpenTrade(direction);

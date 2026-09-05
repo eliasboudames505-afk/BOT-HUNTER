@@ -9,7 +9,7 @@ input ENUM_TIMEFRAMES InpSignalTimeframe=PERIOD_M15;
 input long InpMagicNumber=26090501;
 input double InpRiskPercent=0.50;
 input double InpMaxDailyLossPercent=3.00;
-input double InpMaxSpreadPrice=0.0;
+input int InpMaxSpreadPoints=40;
 input double InpStopLossPrice=0.0;
 input double InpTakeProfitPrice=0.0;
 input double InpTrailStartPrice=0.0;
@@ -57,7 +57,7 @@ bool DailyLossLimitReached()
    return(InpMaxDailyLossPercent>0.0 && g_dayStartEquity>0.0 &&
           AccountInfoDouble(ACCOUNT_EQUITY)<=g_dayStartEquity*(1.0-InpMaxDailyLossPercent/100.0));
   }
-double MaxSpreadPrice() { return(InpMaxSpreadPrice>0.0 ? InpMaxSpreadPrice : 0.80); }
+double SpreadPoints(const double spread) { return(spread/SymbolInfoDouble(g_symbol,SYMBOL_POINT)); }
 double StopLossPrice() { return(InpStopLossPrice>0.0 ? InpStopLossPrice : 8.0); }
 double TakeProfitPrice() { return(InpTakeProfitPrice>0.0 ? InpTakeProfitPrice : 16.0); }
 double TrailStartPrice() { return(InpTrailStartPrice>0.0 ? InpTrailStartPrice : 6.0); }
@@ -122,7 +122,7 @@ int SignalDirection()
 bool CanOpen(const double spread)
   {
    return(IsTradingHour() && !DailyLossLimitReached() && !HasOurPosition() &&
-          spread<=MaxSpreadPrice() && TerminalInfoInteger(TERMINAL_TRADE_ALLOWED));
+          SpreadPoints(spread)<=InpMaxSpreadPoints && TerminalInfoInteger(TERMINAL_TRADE_ALLOWED));
   }
 void OpenTrade(const int direction)
   {
@@ -199,7 +199,7 @@ void UpdatePanel()
    int trend=SignalDirection();
    SetPanelLine("title",0," BROKER-AWARE XAUUSD EA ",clrWhite);
    SetPanelLine("quote",1,StringFormat("%s  Bid %.2f  Ask %.2f",g_symbol,tick.bid,tick.ask),clrGainsboro);
-   SetPanelLine("spread",2,StringFormat("Spread %.2f / max %.2f",spread,MaxSpreadPrice()),spread<=MaxSpreadPrice() ? clrLimeGreen : clrTomato);
+   SetPanelLine("spread",2,StringFormat("Spread %.0f / max %d points",SpreadPoints(spread),InpMaxSpreadPoints),SpreadPoints(spread)<=InpMaxSpreadPoints ? clrLimeGreen : clrTomato);
    SetPanelLine("trend",3,"Signal "+(trend>0 ? "BUY" : trend<0 ? "SELL" : "WAIT"),clrAqua);
    SetPanelLine("position",4,HasOurPosition() ? "Position OPEN" : "Position NONE",clrGainsboro);
    SetPanelLine("status",5,DailyLossLimitReached() ? "HALTED: DAILY LOSS LIMIT" : (ready ? "READY: NEW ENTRIES ENABLED" : "BLOCKED: CHECK CONDITIONS"),ready ? clrLimeGreen : clrTomato);
@@ -239,7 +239,7 @@ void OnTick()
    RefreshDayGuard();
    ManageTrailingStop();
    MqlTick tick;
-   if(SymbolInfoTick(g_symbol,tick) && IsNewSignalBar() && CanOpen(tick.ask-tick.bid))
+   if(SymbolInfoTick(g_symbol,tick) && CanOpen(tick.ask-tick.bid))
      {
       int direction=SignalDirection();
       if(direction!=0) OpenTrade(direction);
