@@ -23,6 +23,8 @@ input int InpSlippagePoints=30;
 input bool InpEnableTrailingStop=true;
 input bool InpShowPanel=true;
 input int InpChartZoom=2;
+input ENUM_BASE_CORNER InpPanelCorner=CORNER_RIGHT_UPPER;
+input int InpPanelMargin=12;
 
 string g_symbol;
 datetime g_lastBar=0;
@@ -162,10 +164,11 @@ void SetPanelLine(const string id,const int row,const string text,const color te
    if(ObjectFind(0,name)<0)
      {
       ObjectCreate(0,name,OBJ_LABEL,0,0,0);
-      ObjectSetInteger(0,name,OBJPROP_CORNER,CORNER_LEFT_UPPER);
-      ObjectSetInteger(0,name,OBJPROP_XDISTANCE,18);
-      ObjectSetInteger(0,name,OBJPROP_YDISTANCE,18+row*19);
-      ObjectSetInteger(0,name,OBJPROP_FONTSIZE,(row==0 ? 11 : 9));
+      ObjectSetInteger(0,name,OBJPROP_CORNER,InpPanelCorner);
+      ObjectSetInteger(0,name,OBJPROP_ANCHOR,ANCHOR_RIGHT_UPPER);
+      ObjectSetInteger(0,name,OBJPROP_XDISTANCE,InpPanelMargin+18);
+      ObjectSetInteger(0,name,OBJPROP_YDISTANCE,InpPanelMargin+18+row*20);
+      ObjectSetInteger(0,name,OBJPROP_FONTSIZE,(row==0 ? 13 : 10));
       ObjectSetString(0,name,OBJPROP_FONT,"Consolas");
      }
    ObjectSetString(0,name,OBJPROP_TEXT,text);
@@ -176,11 +179,11 @@ void SetPanelBackground()
    string name=PanelName("background");
    if(ObjectFind(0,name)>=0) return;
    ObjectCreate(0,name,OBJ_RECTANGLE_LABEL,0,0,0);
-   ObjectSetInteger(0,name,OBJPROP_CORNER,CORNER_LEFT_UPPER);
-   ObjectSetInteger(0,name,OBJPROP_XDISTANCE,8);
-   ObjectSetInteger(0,name,OBJPROP_YDISTANCE,8);
-   ObjectSetInteger(0,name,OBJPROP_XSIZE,330);
-   ObjectSetInteger(0,name,OBJPROP_YSIZE,128);
+   ObjectSetInteger(0,name,OBJPROP_CORNER,InpPanelCorner);
+   ObjectSetInteger(0,name,OBJPROP_XDISTANCE,InpPanelMargin);
+   ObjectSetInteger(0,name,OBJPROP_YDISTANCE,InpPanelMargin);
+   ObjectSetInteger(0,name,OBJPROP_XSIZE,450);
+   ObjectSetInteger(0,name,OBJPROP_YSIZE,244);
    ObjectSetInteger(0,name,OBJPROP_BGCOLOR,clrBlack);
    ObjectSetInteger(0,name,OBJPROP_COLOR,clrDimGray);
    ObjectSetInteger(0,name,OBJPROP_SELECTABLE,false);
@@ -190,14 +193,24 @@ void UpdatePanel()
    if(!InpShowPanel) return;
    SetPanelBackground();
    double bid=MarketInfo(g_symbol,MODE_BID), ask=MarketInfo(g_symbol,MODE_ASK), spread=ask-bid;
-   bool ready=CanOpen(spread);
    int trend=SignalDirection();
-   SetPanelLine("title",0," BROKER-AWARE XAUUSD EA ",clrWhite);
-   SetPanelLine("quote",1,StringFormat("%s  Bid %.2f  Ask %.2f",g_symbol,bid,ask),clrGainsboro);
-   SetPanelLine("spread",2,StringFormat("Spread %.0f / max %d points",SpreadPoints(spread),InpMaxSpreadPoints),SpreadPoints(spread)<=InpMaxSpreadPoints ? clrLimeGreen : clrTomato);
-   SetPanelLine("trend",3,"Signal "+(trend>0 ? "BUY" : trend<0 ? "SELL" : "WAIT"),clrAqua);
-   SetPanelLine("position",4,HasOurPosition() ? "Position OPEN" : "Position NONE",clrGainsboro);
-   SetPanelLine("status",5,DailyLossLimitReached() ? "HALTED: DAILY LOSS LIMIT" : (ready ? "READY: NEW ENTRIES ENABLED" : "BLOCKED: CHECK CONDITIONS"),ready ? clrLimeGreen : clrTomato);
+   bool spreadAllowed=(SpreadPoints(spread)<=InpMaxSpreadPoints);
+   string entryState=!IsTradeAllowed() ? "AUTO TRADING: OFF" :
+                     DailyLossLimitReached() ? "HALTED: DAILY LOSS LIMIT" :
+                     !spreadAllowed ? "ENTRY BLOCKED: SPREAD" :
+                     HasOurPosition() ? "POSITION MANAGED" :
+                     trend>0 ? "BUY READY" : trend<0 ? "SELL READY" : "WAITING FOR TREND";
+   color entryColor=(trend==0 || !spreadAllowed || DailyLossLimitReached() || !IsTradeAllowed() ? clrTomato : clrLimeGreen);
+   SetPanelLine("title",0," XAUUSD | BROKER-AWARE EA ",clrWhite);
+   SetPanelLine("market",1,StringFormat("MARKET  %s   %s",g_symbol,EnumToString(InpSignalTimeframe)),clrSilver);
+   SetPanelLine("quote",2,StringFormat("BID  %.2f     ASK  %.2f",bid,ask),clrGainsboro);
+   SetPanelLine("spread",3,StringFormat("SPREAD  %.0f / %d POINTS",SpreadPoints(spread),InpMaxSpreadPoints),spreadAllowed ? clrLimeGreen : clrTomato);
+   SetPanelLine("trend",4,"TREND SIGNAL  "+(trend>0 ? "BUY" : trend<0 ? "SELL" : "NEUTRAL"),clrAqua);
+   SetPanelLine("risk",5,StringFormat("RISK  %.2f%%    STOP  %.2f    TARGET  %.2f",InpRiskPercent,StopLossPrice(),TakeProfitPrice()),clrGainsboro);
+   SetPanelLine("guard",6,StringFormat("DAILY GUARD  %.2f%%",InpMaxDailyLossPercent),clrGainsboro);
+   SetPanelLine("position",7,HasOurPosition() ? "POSITION  OPEN - TRAILING MANAGED" : "POSITION  NONE",clrGainsboro);
+   SetPanelLine("execution",8,"EXECUTION  BUY AT ASK | SELL AT BID",clrSilver);
+   SetPanelLine("status",9,entryState,entryColor);
   }
 int OnInit()
   {
@@ -216,8 +229,8 @@ int OnInit()
   }
 void OnDeinit(const int reason)
   {
-   string ids[6]={"title","quote","spread","trend","position","status"};
-   for(int i=0;i<6;i++) ObjectDelete(0,PanelName(ids[i]));
+   string ids[10]={"title","market","quote","spread","trend","risk","guard","position","execution","status"};
+   for(int i=0;i<10;i++) ObjectDelete(0,PanelName(ids[i]));
    ObjectDelete(0,PanelName("background"));
   }
 void OnTick()
