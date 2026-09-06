@@ -8,7 +8,11 @@ Starter MetaTrader Expert Advisors and GitHub reporting automation.
 - `MQL5/Experts/BotHunter.mq5` is the MQL5 starter Expert Advisor.
 - `.vscode/` recommends MQL Tools and associates MQ4/MQ5 source files with an editor mode.
 
-The starter EAs only log a periodic heartbeat. They do not open, modify, or close trades.
+The starter EAs stream a periodic quote signal for `@fxboslink` while the MetaTrader
+terminal is connected. They pause output while disconnected and immediately send a
+quote when connectivity returns. MQL4 reports newly closed market orders on the chart
+symbol, while MQL5 reports closing deals on that symbol. Set the `StreamUser` EA input
+to label a different stream user. The EAs do not open, modify, or close trades.
 
 ## Live automation reports
 
