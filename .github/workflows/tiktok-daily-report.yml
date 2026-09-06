@@ -1,0 +1,32 @@
+name: TikTok daily report
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect TikTok metrics and comments
+        env:
+          TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+          TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+          TIKTOK_MONITOR_ACCOUNTS: ${{ secrets.TIKTOK_MONITOR_ACCOUNTS }}
+          TIKTOK_COMMENTS_URL_TEMPLATE: ${{ secrets.TIKTOK_COMMENTS_URL_TEMPLATE }}
+          REPORT_PATH: tiktok-report.md
+        run: python scripts/tiktok_daily_report.py
+      - name: Create daily GitHub Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create tiktok-daily-report --color 0E8A16 --description "Automated TikTok monitoring report" --force
+          gh issue create \
+            --title "TikTok monitoring report $(date -u +%F)" \
+            --label tiktok-daily-report \
+            --body-file tiktok-report.md
