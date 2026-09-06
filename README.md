@@ -33,3 +33,16 @@ The BTCUSD MT5 EA has its own defaults: a maximum spread of `4.0`, stop loss of 
 `ImaratBot2.mq4` is the dedicated MT4 XAUUSD version. It accepts one position at a time, uses the same EMA/RSI strategy and risk controls, and permits an entry only when the live `Ask - Bid` spread is **40 broker points or less**.
 
 No trading strategy can guarantee profit. The broker's contract specifications, leverage, execution rules, swaps, and spread behavior remain decisive; validate every configuration in the intended terminal before using a live account.
+
+## TikTok daily monitoring
+
+The scheduled GitHub workflow monitors `@vopllll0`, `@soniafxea`, and `@furyflipper`, then creates a labeled GitHub Issue each day with authorized profile metrics and a comment summary. Before enabling it, add these repository **Actions secrets**:
+
+| Secret | Value |
+|---|---|
+| `TIKTOK_CLIENT_KEY` | TikTok developer app client key |
+| `TIKTOK_CLIENT_SECRET` | TikTok developer app client secret |
+| `TIKTOK_MONITOR_ACCOUNTS` | JSON array containing each authorized handle and refresh token, for example `[{"handle":"@vopllll0","refresh_token":"..."}]` |
+| `TIKTOK_COMMENTS_URL_TEMPLATE` | The approved comments API URL from the app's TikTok product documentation, including `{open_id}` where that account's Open ID belongs |
+
+The workflow refreshes tokens at run time and never writes them to the repository or report. TikTok's available comment fields and endpoint are product-specific, so the comments URL must be the approved endpoint for the user's application; without it, the report still records profile statistics and clearly states that comments were not collected.
