@@ -5,6 +5,7 @@ This repository contains equivalent MetaTrader 4 and MetaTrader 5 Expert Advisor
 - `MQL4/BrokerAwareXAUUSDEA.mq4`
 - `MQL5/BrokerAwareXAUUSDEA.mq5`
 - `MQL5/BrokerAwareBTCUSDEA.mq5`
+- `MQL4/ImaratBot2.mq4`
 
 The XAUUSD and BTCUSD advisors trade a trend-continuation setup: the fast EMA must be above/below the slow EMA and RSI must confirm the direction. The setup is evaluated on completed signal bars and can open immediately after attachment when the current confirmed trend meets all risk gates. They deliberately do not use hard-coded broker symbol names. Set `InpSymbol` to the exact Market Watch name (for example, `XAUUSDm`, `GOLD`, or `BTCUSD.a`) when the chart symbol is not right.
 
@@ -28,5 +29,7 @@ The XAUUSD and BTCUSD advisors trade a trend-continuation setup: the fast EMA mu
 `InpStopLossPrice`, `InpTakeProfitPrice`, `InpTrailStartPrice`, and `InpTrailDistancePrice` are price units, not pips. For example, an XAUUSD stop loss of `8.0` means $8.00 in gold price. The XAUUSD defaults apply when their inputs are left at zero.
 
 The BTCUSD MT5 EA has its own defaults: a maximum spread of `4.0`, stop loss of `500.0`, take profit of `1000.0`, trailing-start distance of `400.0`, and trailing distance of `250.0`.
+
+`ImaratBot2.mq4` is the dedicated MT4 XAUUSD version. It accepts one position at a time, uses the same EMA/RSI strategy and risk controls, and permits an entry only when the live `Ask - Bid` spread is **40 broker points or less**.
 
 No trading strategy can guarantee profit. The broker's contract specifications, leverage, execution rules, swaps, and spread behavior remain decisive; validate every configuration in the intended terminal before using a live account.
